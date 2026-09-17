@@ -42,26 +42,33 @@ public class UsuarioController {
                                 Model model,
                                 HttpSession session) {
         try {
-            boolean autenticado = usuarioService.autenticar(correo, clave);
-            if (autenticado) {
-                // EXITO: Guardamos el correo del usuario en la sesión del servidor
-                session.setAttribute("usuarioLogueado", correo);
-                return "redirect:/home";
-            }
+            // Recibimos el OBJETO Usuario
+            Usuario usuarioLogueado = usuarioService.autenticar(correo, clave);
+
+            // ERROR CORREGIDO: Guardamos el objeto completo bajo el nombre "usuariosession"
+            session.setAttribute("usuariosession", usuarioLogueado);
+
+            return "redirect:/home";
+
         } catch (Exception e) {
             String mensajeError = e.getMessage();
 
-            if (mensajeError.equals("no_registrado")) {
-                model.addAttribute("mensaje", "Usuario no encontrado. Por favor, regístrese.");
+            if ("no_registrado".equals(mensajeError)) {
+                model.addAttribute("error", "Usuario no encontrado. Por favor, regístrese.");
                 model.addAttribute("mostrarRegistro", true);
                 return "login";
-            } else if (mensajeError.equals("cuenta_bloqueada")) {
-                return "redirect:/login?error=Cuenta bloqueada por múltiples intentos fallidos.";
-            } else if (mensajeError.equals("clave_incorrecta")) {
-                return "redirect:/login?error=Contraseña incorrecta.";
+            } else if ("cuenta_bloqueada".equals(mensajeError)) {
+                // Pasamos el texto al Model y retornamos la vista (evita el Error 400)
+                model.addAttribute("error", "Cuenta bloqueada por múltiples intentos fallidos.");
+                return "login";
+            } else if ("clave_incorrecta".equals(mensajeError)) {
+                model.addAttribute("error", "Contraseña incorrecta. Se ha registrado un intento fallido.");
+                return "login";
             }
         }
-        return "redirect:/login?error=Error desconocido";
+
+        model.addAttribute("error", "Error inesperado al intentar iniciar sesión.");
+        return "login";
     }
 
     /**
@@ -82,18 +89,11 @@ public class UsuarioController {
      * Ahora la ruta /home está protegida. Solo se puede entrar si hay sesión.
      */
     @GetMapping("/home")
-    public String home(HttpSession session, Model model) {
-        // Recuperamos el dato que guardamos durante el login
-        String correoUsuario = (String) session.getAttribute("usuarioLogueado");
-
-        // Validamos si la sesión existe
-        if (correoUsuario == null) {
-            // Si es null, significa que no se logueó. Lo pateamos al login.
-            return "redirect:/login?error=Acceso denegado. Debe iniciar sesion.";
+    public String mostrarHome(HttpSession session) {
+        // Validamos buscando la misma etiqueta que usamos en el login
+        if (session.getAttribute("usuariosession") == null) {
+            return "redirect:/login";
         }
-
-        // Si existe, le pasamos el correo a la vista para mostrar un saludo
-        model.addAttribute("correo", correoUsuario);
         return "home";
     }
 
@@ -112,6 +112,19 @@ public class UsuarioController {
                                    @RequestParam String repeticionClave,
                                    Model model) {
         try {
+            // Validación Backend de DNI
+            if (usuario.getDni() < 10000000) {
+                model.addAttribute("error", "El DNI debe ser mayor a 10.000.000");
+                return "registro";
+            }
+
+            // Validación Backend de Fecha
+            int anioNacimiento = usuario.getFechaNac().getYear(); // Dependiendo de si usas Date o LocalDate
+            if (anioNacimiento < 1930 || anioNacimiento >= 2026) {
+                model.addAttribute("error", "El año de nacimiento debe estar entre 1930 y 2025");
+                return "registro";
+            }
+
             usuarioService.registrarUsuario(usuario, repeticionClave);
             return "redirect:/login?error=Registro exitoso. Inicie sesion.";
         } catch (Exception e) {

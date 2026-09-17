@@ -108,34 +108,34 @@ public class UsuarioService {
      * Lógica equivalente a los métodos ingresar(), bloquearUsuario() y reiniciarIntentos().
      * @return true si el login es exitoso, lanza Excepciones si hay errores o bloqueos.
      */
-    public boolean autenticar(String correo, String clave) throws Exception {
+    // En UsuarioService.java
+    public Usuario autenticar(String correo, String clave) throws Exception {
         Optional<Usuario> optUsuario = usuarioRepository.findByCorreo(correo);
 
-        // Si el usuario no existe en la base de datos
         if (optUsuario.isEmpty()) {
-            throw new Exception("no_registrado"); // Código que el controlador leerá
+            throw new Exception("no_registrado");
         }
 
         Usuario usuario = optUsuario.get();
 
-        // 1. Verificar si la cuenta está bloqueada (activo == false)
+        // Verificamos si está bloqueado
         if (!usuario.isActivo()) {
             throw new Exception("cuenta_bloqueada");
         }
 
-        // 2. Verificar la contraseña
+        // Comparamos contraseñas
         if (usuario.getClave().equals(clave)) {
-            // Login exitoso: equivalente a reiniciarIntentos(correo, intentos) del diagrama.
+            // Reiniciamos intentos
             usuario.setIntentosPorDia(0);
             usuarioRepository.save(usuario);
-            return true;
+
+            // ¡EXCELENTE! Retornamos el objeto completo
+            return usuario;
         } else {
-            // Contraseña incorrecta: Aumentar intentos
             usuario.setIntentosPorDia(usuario.getIntentosPorDia() + 1);
 
-            // Lógica de validación: 3 errores bloquean la cuenta (bloquearUsuario).
             if (usuario.getIntentosPorDia() >= 3) {
-                usuario.setActivo(false); // Se bloquea al usuario
+                usuario.setActivo(false);
                 usuarioRepository.save(usuario);
                 throw new Exception("cuenta_bloqueada");
             }
