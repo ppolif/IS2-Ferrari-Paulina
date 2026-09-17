@@ -1,0 +1,72 @@
+<!--
+    login.html
+    ----------------------------------------------------------------------
+    Vista pública (permitAll en SecurityConfig) que muestra el formulario
+    de acceso. El formulario NO apunta a un @Controller propio: Spring
+    Security intercepta el POST gracias a la configuración:
+
+        .formLogin(form -> form
+            .loginPage("/login")
+            .loginProcessingUrl("/logincheck")
+            .usernameParameter("correo")
+            .passwordParameter("clave")
+            ...
+
+    Por eso el <form> postea a /logincheck con inputs "correo" y "clave".
+    Si el login falla, Spring Security redirige de nuevo a /login?error,
+    y si el usuario cierra sesión, a /login?logout. Ambos casos se leen
+    directamente con ${param.error} / ${param.logout}, sin necesidad de
+    que un Controller arme el Model.
+-->
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ingresar - Club Deportivo</title>
+    <link rel="stylesheet" th:href="@{/assets/css/bootstrap.css}">
+    <link rel="stylesheet" th:href="@{/assets/css/app.css}">
+    <link rel="stylesheet" th:href="@{/assets/css/pages/auth.css}">
+</head>
+<body>
+<div id="auth">
+    <div class="row h-100">
+        <div class="col-lg-6 col-12">
+            <div id="auth-left">
+                <div class="auth-logo">
+                    <a th:href="@{/login}"><img th:src="@{/assets/images/logo/logo.png}" alt="Logo" width="140"></a>
+                </div>
+                <h1 class="auth-title">Bienvenido</h1>
+                <p class="auth-subtitle mb-5">Ingresá con el correo y la contraseña que te asignó el club.</p>
+
+                <div th:if="${param.error}" class="alert alert-danger">
+                    Correo o contraseña incorrectos.
+                </div>
+                <div th:if="${param.logout}" class="alert alert-success">
+                    Sesión cerrada correctamente.
+                </div>
+
+                <form th:action="@{/logincheck}" method="POST">
+                    <div class="form-group mb-4">
+                        <input type="email" name="correo" class="form-control form-control-xl" placeholder="Correo Electrónico" required autofocus>
+                    </div>
+                    <div class="form-group mb-4">
+                        <input type="password" name="clave" class="form-control form-control-xl" placeholder="Contraseña" required>
+                    </div>
+                    <button class="btn btn-primary btn-block btn-lg shadow-lg mt-3" type="submit">Ingresar</button>
+                </form>
+
+                <div class="text-center mt-4 text-lg fs-4">
+                    <p class="text-gray-600">
+                        ¿No tenés cuenta? Pedile a la administración del club que te dé de alta como socio.
+                    </p>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-6 d-none d-lg-block">
+            <div id="auth-right"></div>
+        </div>
+    </div>
+</div>
+</body>
+</html>
