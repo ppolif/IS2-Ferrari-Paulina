@@ -1,34 +1,90 @@
 <!DOCTYPE html>
 <html lang="es" xmlns:th="http://www.thymeleaf.org">
 <head>
+    <meta charset="UTF-8">
+    <title>Alumnos Inscritos - Registro de Notas</title>
     <link rel="stylesheet" th:href="@{/assets/css/bootstrap.css}">
     <link rel="stylesheet" th:href="@{/assets/css/app.css}">
 </head>
 <body>
-<div id="main">
-    <div class="page-heading">
+<div id="main" class="p-4">
+    <div class="page-heading mb-4">
         <h3>Alumnos Inscritos</h3>
+        <p class="text-subtitle text-muted" th:if="${materia != null}">
+            Materia: <strong th:text="${materia.nombre}"></strong> | Grado: <span class="badge bg-info" th:text="${materia.grado}"></span>
+        </p>
     </div>
+
     <div class="page-content">
+        <!-- Mensajes flash de éxito o error -->
+        <div th:if="${exito != null}" class="alert alert-success alert-dismissible fade show" role="alert" th:text="${exito}"></div>
+        <div th:if="${error != null}" class="alert alert-danger alert-dismissible fade show" role="alert" th:text="${error}"></div>
+
         <div class="card">
             <div class="card-body">
-                <table class="table table-hover">
-                    <thead>
-                    <tr>
-                        <th>Legajo</th>
-                        <th>Nombre Completo</th>
-                        <th>Grado</th>
-                    </tr>
-                    </thead>
-                    <tbody>
-                    <tr th:each="alumno : ${alumnos}">
-                        <td th:text="${alumno.legajo}"></td>
-                        <td th:text="${alumno.nombre} + ' ' + ${alumno.apellido}"></td>
-                        <td><span class="badge bg-success" th:text="${alumno.grado}"></span></td>
-                    </tr>
-                    </tbody>
-                </table>
-                <a th:href="@{/materias}" class="btn btn-secondary mt-3">Volver a Materias</a>
+                <div th:if="${alumnos == null or #lists.isEmpty(alumnos)}" class="alert alert-warning">
+                    No hay alumnos inscriptos actualmente en esta materia.
+                </div>
+
+                <div th:if="${alumnos != null and !#lists.isEmpty(alumnos)}" class="table-responsive">
+                    <table class="table table-hover align-middle">
+                        <thead>
+                        <tr>
+                            <th>Legajo</th>
+                            <th>Nombre Completo</th>
+                            <th>Grado</th>
+                            <th>Notas Registradas</th>
+                            <th style="min-width: 200px;">Cargar Nota</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <tr th:each="alumno : ${alumnos}">
+                            <td th:text="${alumno.legajo}"></td>
+                            <td th:text="${alumno.nombre} + ' ' + ${alumno.apellido}"></td>
+                            <td><span class="badge bg-success" th:text="${alumno.grado}"></span></td>
+                            <td>
+                                <div th:if="${notasPorAlumno != null and notasPorAlumno.containsKey(alumno.id) and !#lists.isEmpty(notasPorAlumno.get(alumno.id))}">
+                                    <span th:each="n : ${notasPorAlumno.get(alumno.id)}"
+                                          class="badge bg-primary me-1"
+                                          th:text="${n.valor}">
+                                    </span>
+                                </div>
+                                <span th:if="${notasPorAlumno == null or !notasPorAlumno.containsKey(alumno.id) or #lists.isEmpty(notasPorAlumno.get(alumno.id))}"
+                                      class="text-muted small fst-italic">
+                                    Sin notas
+                                </span>
+                            </td>
+                            <td>
+                                <form th:action="@{/profesor/materias/{materiaId}/notas(materiaId=${materia.id})}"
+                                      method="POST"
+                                      class="d-flex align-items-center gap-2">
+                                    <input type="hidden" name="alumnoId" th:value="${alumno.id}">
+                                    <input type="number"
+                                           name="valor"
+                                           min="1"
+                                           max="10"
+                                           class="form-control form-control-sm"
+                                           style="width: 80px;"
+                                           placeholder="1-10"
+                                           required>
+                                    <button type="submit" class="btn btn-sm btn-success">
+                                        Calificar
+                                    </button>
+                                </form>
+                            </td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="d-flex gap-2 mt-3">
+                    <a th:if="${materia != null}" th:href="@{/materias/detalle/{id}(id=${materia.id})}" class="btn btn-outline-secondary">
+                        Volver al Detalle
+                    </a>
+                    <a th:href="@{/materias}" class="btn btn-secondary">
+                        Volver a Materias
+                    </a>
+                </div>
             </div>
         </div>
     </div>

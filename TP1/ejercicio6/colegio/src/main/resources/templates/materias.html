@@ -12,11 +12,13 @@
             <a sec:authorize="hasRole('PROFESOR')" th:href="@{/profesor/cambiar-clave}" class="btn btn-secondary">
                 Cambiar Contraseña
             </a>
-            <!-- Botón de cierre de sesión apuntando a la ruta manejada por Spring Security[cite: 7] -->
             <a th:href="@{/logout}" class="btn btn-danger">Cerrar Sesión</a>
         </div>
     </div>
     <div class="page-content">
+        <div th:if="${exito != null}" class="alert alert-success" th:text="${exito}"></div>
+        <div th:if="${error != null}" class="alert alert-danger" th:text="${error}"></div>
+
         <div class="card">
             <div class="card-body">
                 <table class="table table-striped">

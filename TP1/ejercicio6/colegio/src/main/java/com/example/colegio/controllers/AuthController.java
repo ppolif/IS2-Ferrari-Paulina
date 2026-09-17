@@ -31,12 +31,12 @@ public class AuthController {
     }
 
     @PostMapping("/registro")
-    public String registrarProfesor(@ModelAttribute RegistroProfesorDTO dto, Model model) {
+    public String registrarProfesor(@ModelAttribute("registroDTO") RegistroProfesorDTO dto, Model model) {
         try {
             profesorService.registrarProfesor(dto);
             return "redirect:/login?exito";
         } catch (Exception e) {
-            model.addAttribute("error", "Error en el registro");
+            model.addAttribute("error", e.getMessage() != null ? e.getMessage() : "Error en el registro");
             return "registro";
         }
     }
@@ -53,7 +53,7 @@ public class AuthController {
             alumnoService.registrarAlumno(dto);
             return "redirect:/login?exito";
         } catch (Exception e) {
-            attributes.addFlashAttribute("error", "Error al registrar alumno");
+            attributes.addFlashAttribute("error", e.getMessage() != null ? e.getMessage() : "Error al registrar alumno");
             return "redirect:/registro-alumno";
         }
     }
