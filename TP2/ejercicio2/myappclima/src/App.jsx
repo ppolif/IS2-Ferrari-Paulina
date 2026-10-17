@@ -17,7 +17,7 @@ function App() {
   return (
     <>
       <div className="container">
-        <h1 className="mt-3"> Busca el clima Actual</h1>
+        <h1 className="mt-3" style={{ color: "black" }}> Busca el clima Actual</h1>
         <InputCiudad ciudad={ciudad} setCiudad={setCiudad} />
         <BottonConsulta obtenerClima={handlerObtenerClima} />
         <DisplayClima clima={clima} />
